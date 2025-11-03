@@ -8,8 +8,7 @@ public class ClienteDao {
 
     public void adicionarCliente(Cliente cliente) {
         if (obterClientePorEmail(cliente.getEmail()) != null) {
-            System.err.println("Erro: Já existe um cliente com este email.");
-            return;
+            throw new DataAccessException("Erro: Já existe um cliente com este email.", null);
         }
 
         String sql = "INSERT INTO clientes (nome, email, telefone) VALUES (?, ?, ?)";
@@ -26,7 +25,7 @@ public class ClienteDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao adicionar cliente: " + e.getMessage());
+            throw new DataAccessException("Erro ao adicionar cliente.", e);
         }
     }
 
@@ -46,7 +45,7 @@ public class ClienteDao {
                 clientes.add(cliente);
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter clientes: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter clientes.", e);
         }
         return clientes;
     }
@@ -67,7 +66,7 @@ public class ClienteDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter cliente por ID: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter cliente por ID.", e);
         }
         return cliente;
     }
@@ -88,7 +87,7 @@ public class ClienteDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter cliente por email: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter cliente por email.", e);
         }
         return cliente;
     }
@@ -96,8 +95,7 @@ public class ClienteDao {
     public boolean atualizarCliente(Cliente cliente) {
         Cliente clienteExistente = obterClientePorEmail(cliente.getEmail());
         if (clienteExistente != null && clienteExistente.getId() != cliente.getId()) {
-            System.err.println("Erro: Outro cliente com este email já existe.");
-            return false;
+            throw new DataAccessException("Erro: Outro cliente com este email já existe.", null);
         }
 
         String sql = "UPDATE clientes SET nome = ?, email = ?, telefone = ? WHERE id = ?";
@@ -110,8 +108,7 @@ public class ClienteDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao atualizar cliente: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao atualizar cliente.", e);
         }
     }
 
@@ -123,8 +120,7 @@ public class ClienteDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao deletar cliente: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao deletar cliente.", e);
         }
     }
 }

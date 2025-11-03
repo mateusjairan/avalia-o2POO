@@ -8,8 +8,7 @@ public class UsuarioDao {
 
     public void adicionarUsuario(Usuario usuario) {
         if (obterUsuarioPorNomeUsuario(usuario.getNomeUsuario()) != null) {
-            System.err.println("Erro: Já existe um usuário com este nome de usuário.");
-            return;
+            throw new DataAccessException("Erro: Já existe um usuário com este nome de usuário.", null);
         }
 
         String sql = "INSERT INTO usuarios (nome_usuario, senha, perfil_id) VALUES (?, ?, ?)";
@@ -26,7 +25,7 @@ public class UsuarioDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao adicionar usuário: " + e.getMessage());
+            throw new DataAccessException("Erro ao adicionar usuário.", e);
         }
     }
 
@@ -44,7 +43,7 @@ public class UsuarioDao {
                 usuarios.add(usuario);
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter usuários: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter usuários.", e);
         }
         return usuarios;
     }
@@ -63,7 +62,7 @@ public class UsuarioDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter usuário por ID: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter usuário por ID.", e);
         }
         return usuario;
     }
@@ -82,7 +81,7 @@ public class UsuarioDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter usuário por nome de usuário: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter usuário por nome de usuário.", e);
         }
         return usuario;
     }
@@ -90,8 +89,7 @@ public class UsuarioDao {
     public boolean atualizarUsuario(Usuario usuario) {
         Usuario usuarioExistente = obterUsuarioPorNomeUsuario(usuario.getNomeUsuario());
         if (usuarioExistente != null && usuarioExistente.getId() != usuario.getId()) {
-            System.err.println("Erro: Outro usuário com este nome de usuário já existe.");
-            return false;
+            throw new DataAccessException("Erro: Outro usuário com este nome de usuário já existe.", null);
         }
 
         String sql = "UPDATE usuarios SET nome_usuario = ?, senha = ?, perfil_id = ? WHERE id = ?";
@@ -104,8 +102,7 @@ public class UsuarioDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao atualizar usuário: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao atualizar usuário.", e);
         }
     }
 
@@ -117,8 +114,7 @@ public class UsuarioDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao deletar usuário: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao deletar usuário.", e);
         }
     }
 }

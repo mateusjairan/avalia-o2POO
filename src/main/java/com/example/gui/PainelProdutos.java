@@ -1,5 +1,6 @@
 package com.example.gui;
 
+import com.example.DataAccessException;
 import com.example.Produto;
 import com.example.ProdutoDao;
 
@@ -49,10 +50,14 @@ public class PainelProdutos extends JPanel {
     }
 
     private void atualizarTabela() {
-        modeloTabela.setRowCount(0);
-        List<Produto> produtos = produtoDao.obterTodosOsProdutos();
-        for (Produto produto : produtos) {
-            modeloTabela.addRow(new Object[]{produto.getId(), produto.getNome(), produto.getDescricao(), produto.getPreco()});
+        try {
+            modeloTabela.setRowCount(0);
+            List<Produto> produtos = produtoDao.obterTodosOsProdutos();
+            for (Produto produto : produtos) {
+                modeloTabela.addRow(new Object[]{produto.getId(), produto.getNome(), produto.getDescricao(), produto.getPreco()});
+            }
+        } catch (DataAccessException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Acesso aos Dados", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -76,7 +81,7 @@ public class PainelProdutos extends JPanel {
             String precoStr = campoPreco.getText();
 
             if (nome.trim().isEmpty() || precoStr.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome and Preço cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Nome e preço não podem estar vazios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -86,7 +91,9 @@ public class PainelProdutos extends JPanel {
                 produtoDao.adicionarProduto(produto);
                 atualizarTabela();
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Preço inválido. Por favor, insira um número válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Preço inválido. Por favor, insira um número válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Adicionar Produto", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -120,7 +127,7 @@ public class PainelProdutos extends JPanel {
             String precoStr = campoPreco.getText();
 
             if (nome.trim().isEmpty() || precoStr.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome e preço não podem estar vazios.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Nome e preço não podem estar vazios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -130,10 +137,12 @@ public class PainelProdutos extends JPanel {
                 if (produtoDao.atualizarProduto(produto)) {
                     atualizarTabela();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Não foi possível atualizar o produto.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Não foi possível atualizar o produto (produto não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Preço inválido. Por favor, insira um número válido.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Preço inválido. Por favor, insira um número válido.", "Erro de Formato", JOptionPane.ERROR_MESSAGE);
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Atualizar Produto", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -149,10 +158,14 @@ public class PainelProdutos extends JPanel {
         int confirmacao = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja deletar este produto?", "Confirmar Deleção", JOptionPane.YES_NO_OPTION);
 
         if (confirmacao == JOptionPane.YES_OPTION) {
-            if (produtoDao.deletarProduto(id)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível deletar o produto.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (produtoDao.deletarProduto(id)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível deletar o produto (produto não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Deletar Produto", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

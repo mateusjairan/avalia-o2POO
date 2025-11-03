@@ -8,8 +8,7 @@ public class PerfilDao {
 
     public void adicionarPerfil(Perfil perfil) {
         if (obterPerfilPorNome(perfil.getNome()) != null) {
-            System.err.println("Erro: Já existe um perfil com este nome.");
-            return;
+            throw new DataAccessException("Erro: Já existe um perfil com este nome.", null);
         }
 
         String sql = "INSERT INTO perfis (nome) VALUES (?)";
@@ -24,7 +23,7 @@ public class PerfilDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao adicionar perfil: " + e.getMessage());
+            throw new DataAccessException("Erro ao adicionar perfil.", e);
         }
     }
 
@@ -42,7 +41,7 @@ public class PerfilDao {
                 perfis.add(perfil);
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter perfis: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter perfis.", e);
         }
         return perfis;
     }
@@ -61,7 +60,7 @@ public class PerfilDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter perfil por ID: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter perfil por ID.", e);
         }
         return perfil;
     }
@@ -80,15 +79,14 @@ public class PerfilDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter perfil por nome: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter perfil por nome.", e);
         }
         return perfil;
     }
 
     public boolean atualizarPerfil(Perfil perfil) {
         if (obterPerfilPorNome(perfil.getNome()) != null && obterPerfilPorNome(perfil.getNome()).getId() != perfil.getId()) {
-            System.err.println("Erro: Outro perfil com este nome já existe.");
-            return false;
+            throw new DataAccessException("Erro: Outro perfil com este nome já existe.", null);
         }
 
         String sql = "UPDATE perfis SET nome = ? WHERE id = ?";
@@ -99,8 +97,7 @@ public class PerfilDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao atualizar perfil: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao atualizar perfil.", e);
         }
     }
 
@@ -112,8 +109,7 @@ public class PerfilDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao deletar perfil: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao deletar perfil.", e);
         }
     }
 }

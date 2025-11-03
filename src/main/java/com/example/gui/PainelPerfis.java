@@ -1,5 +1,6 @@
 package com.example.gui;
 
+import com.example.DataAccessException;
 import com.example.Perfil;
 import com.example.PerfilDao;
 
@@ -43,19 +44,27 @@ public class PainelPerfis extends JPanel {
     }
 
     private void atualizarTabela() {
-        modeloTabela.setRowCount(0); // Limpa a tabela
-        List<Perfil> perfis = perfilDao.obterTodosOsPerfis();
-        for (Perfil perfil : perfis) {
-            modeloTabela.addRow(new Object[]{perfil.getId(), perfil.getNome()});
+        try {
+            modeloTabela.setRowCount(0); // Limpa a tabela
+            List<Perfil> perfis = perfilDao.obterTodosOsPerfis();
+            for (Perfil perfil : perfis) {
+                modeloTabela.addRow(new Object[]{perfil.getId(), perfil.getNome()});
+            }
+        } catch (DataAccessException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Acesso aos Dados", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void adicionarPerfil() {
         String nome = JOptionPane.showInputDialog(this, "Digite o nome do perfil:", "Adicionar Perfil", JOptionPane.PLAIN_MESSAGE);
         if (nome != null && !nome.trim().isEmpty()) {
-            Perfil perfil = new Perfil(0, nome);
-            perfilDao.adicionarPerfil(perfil);
-            atualizarTabela();
+            try {
+                Perfil perfil = new Perfil(0, nome);
+                perfilDao.adicionarPerfil(perfil);
+                atualizarTabela();
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Adicionar Perfil", JOptionPane.ERROR_MESSAGE);
+            }
         } else if (nome != null) {
             JOptionPane.showMessageDialog(this, "O nome do perfil não pode estar vazio.", "Erro", JOptionPane.ERROR_MESSAGE);
         }
@@ -73,11 +82,15 @@ public class PainelPerfis extends JPanel {
 
         String novoNome = JOptionPane.showInputDialog(this, "Digite o novo nome do perfil:", nomeAtual);
         if (novoNome != null && !novoNome.trim().isEmpty()) {
-            Perfil perfil = new Perfil(id, novoNome);
-            if (perfilDao.atualizarPerfil(perfil)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível atualizar o perfil.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                Perfil perfil = new Perfil(id, novoNome);
+                if (perfilDao.atualizarPerfil(perfil)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível atualizar o perfil (perfil não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Atualizar Perfil", JOptionPane.ERROR_MESSAGE);
             }
         } else if (novoNome != null) {
             JOptionPane.showMessageDialog(this, "O nome do perfil não pode estar vazio.", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -95,10 +108,14 @@ public class PainelPerfis extends JPanel {
         int confirmacao = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja deletar este perfil?", "Confirmar Deleção", JOptionPane.YES_NO_OPTION);
 
         if (confirmacao == JOptionPane.YES_OPTION) {
-            if (perfilDao.deletarPerfil(id)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível deletar o perfil.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (perfilDao.deletarPerfil(id)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível deletar o perfil (perfil não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Deletar Perfil", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

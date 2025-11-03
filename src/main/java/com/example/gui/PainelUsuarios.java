@@ -1,5 +1,6 @@
 package com.example.gui;
 
+import com.example.DataAccessException;
 import com.example.Perfil;
 import com.example.PerfilDao;
 import com.example.Usuario;
@@ -52,10 +53,14 @@ public class PainelUsuarios extends JPanel {
     }
 
     private void atualizarTabela() {
-        modeloTabela.setRowCount(0);
-        List<Usuario> usuarios = usuarioDao.obterTodosOsUsuarios();
-        for (Usuario usuario : usuarios) {
-            modeloTabela.addRow(new Object[]{usuario.getId(), usuario.getNomeUsuario(), usuario.getPerfil().getNome()});
+        try {
+            modeloTabela.setRowCount(0);
+            List<Usuario> usuarios = usuarioDao.obterTodosOsUsuarios();
+            for (Usuario usuario : usuarios) {
+                modeloTabela.addRow(new Object[]{usuario.getId(), usuario.getNomeUsuario(), usuario.getPerfil().getNome()});
+            }
+        } catch (DataAccessException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Acesso aos Dados", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -64,9 +69,14 @@ public class PainelUsuarios extends JPanel {
         JPasswordField campoSenha = new JPasswordField();
         JComboBox<Perfil> comboPerfis = new JComboBox<>();
 
-        List<Perfil> perfis = perfilDao.obterTodosOsPerfis();
-        for (Perfil perfil : perfis) {
-            comboPerfis.addItem(perfil);
+        try {
+            List<Perfil> perfis = perfilDao.obterTodosOsPerfis();
+            for (Perfil perfil : perfis) {
+                comboPerfis.addItem(perfil);
+            }
+        } catch (DataAccessException ex) {
+            JOptionPane.showMessageDialog(this, "Não foi possível carregar os perfis.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
         JPanel painelDialogo = new JPanel(new GridLayout(0, 2, 5, 5));
@@ -84,13 +94,17 @@ public class PainelUsuarios extends JPanel {
             Perfil perfilSelecionado = (Perfil) comboPerfis.getSelectedItem();
 
             if (nomeUsuario.trim().isEmpty() || senha.trim().isEmpty() || perfilSelecionado == null) {
-                JOptionPane.showMessageDialog(this, "Todos os campos devem ser preenchidos.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Todos os campos devem ser preenchidos.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            Usuario usuario = new Usuario(0, nomeUsuario, senha, perfilSelecionado);
-            usuarioDao.adicionarUsuario(usuario);
-            atualizarTabela();
+            try {
+                Usuario usuario = new Usuario(0, nomeUsuario, senha, perfilSelecionado);
+                usuarioDao.adicionarUsuario(usuario);
+                atualizarTabela();
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Adicionar Usuário", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -108,12 +122,17 @@ public class PainelUsuarios extends JPanel {
         JPasswordField campoSenha = new JPasswordField();
         JComboBox<Perfil> comboPerfis = new JComboBox<>();
 
-        List<Perfil> perfis = perfilDao.obterTodosOsPerfis();
-        for (Perfil perfil : perfis) {
-            comboPerfis.addItem(perfil);
-            if (perfil.getId() == usuarioAtual.getPerfil().getId()) {
-                comboPerfis.setSelectedItem(perfil);
+        try {
+            List<Perfil> perfis = perfilDao.obterTodosOsPerfis();
+            for (Perfil perfil : perfis) {
+                comboPerfis.addItem(perfil);
+                if (perfil.getId() == usuarioAtual.getPerfil().getId()) {
+                    comboPerfis.setSelectedItem(perfil);
+                }
             }
+        } catch (DataAccessException ex) {
+            JOptionPane.showMessageDialog(this, "Não foi possível carregar os perfis.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
         JPanel painelDialogo = new JPanel(new GridLayout(0, 2, 5, 5));
@@ -131,7 +150,7 @@ public class PainelUsuarios extends JPanel {
             Perfil perfilSelecionado = (Perfil) comboPerfis.getSelectedItem();
 
             if (nomeUsuario.trim().isEmpty() || perfilSelecionado == null) {
-                JOptionPane.showMessageDialog(this, "Nome de usuário e perfil não podem estar vazios.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Nome de usuário e perfil não podem estar vazios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
@@ -139,11 +158,15 @@ public class PainelUsuarios extends JPanel {
                 senha = usuarioAtual.getSenha(); // Mantém a senha atual se o campo for deixado em branco
             }
 
-            Usuario usuario = new Usuario(id, nomeUsuario, senha, perfilSelecionado);
-            if (usuarioDao.atualizarUsuario(usuario)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível atualizar o usuário.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                Usuario usuario = new Usuario(id, nomeUsuario, senha, perfilSelecionado);
+                if (usuarioDao.atualizarUsuario(usuario)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível atualizar o usuário (usuário não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Atualizar Usuário", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -159,10 +182,14 @@ public class PainelUsuarios extends JPanel {
         int confirmacao = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja deletar este usuário?", "Confirmar Deleção", JOptionPane.YES_NO_OPTION);
 
         if (confirmacao == JOptionPane.YES_OPTION) {
-            if (usuarioDao.deletarUsuario(id)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível deletar o usuário.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (usuarioDao.deletarUsuario(id)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível deletar o usuário (usuário não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Deletar Usuário", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

@@ -9,8 +9,7 @@ public class ProdutoDao {
 
     public void adicionarProduto(Produto produto) {
         if (obterProdutoPorNome(produto.getNome()) != null) {
-            System.err.println("Erro: Já existe um produto com este nome.");
-            return;
+            throw new DataAccessException("Erro: Já existe um produto com este nome.", null);
         }
 
         String sql = "INSERT INTO produtos (nome, descricao, preco) VALUES (?, ?, ?)";
@@ -27,7 +26,7 @@ public class ProdutoDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao adicionar produto: " + e.getMessage());
+            throw new DataAccessException("Erro ao adicionar produto.", e);
         }
     }
 
@@ -47,7 +46,7 @@ public class ProdutoDao {
                 produtos.add(produto);
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter produtos: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter produtos.", e);
         }
         return produtos;
     }
@@ -68,7 +67,7 @@ public class ProdutoDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter produto por ID: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter produto por ID.", e);
         }
         return produto;
     }
@@ -89,7 +88,7 @@ public class ProdutoDao {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao obter produto por nome: " + e.getMessage());
+            throw new DataAccessException("Erro ao obter produto por nome.", e);
         }
         return produto;
     }
@@ -97,8 +96,7 @@ public class ProdutoDao {
     public boolean atualizarProduto(Produto produto) {
         Produto produtoExistente = obterProdutoPorNome(produto.getNome());
         if (produtoExistente != null && produtoExistente.getId() != produto.getId()) {
-            System.err.println("Erro: Outro produto com este nome já existe.");
-            return false;
+            throw new DataAccessException("Erro: Outro produto com este nome já existe.", null);
         }
 
         String sql = "UPDATE produtos SET nome = ?, descricao = ?, preco = ? WHERE id = ?";
@@ -111,8 +109,7 @@ public class ProdutoDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao atualizar produto: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao atualizar produto.", e);
         }
     }
 
@@ -124,8 +121,7 @@ public class ProdutoDao {
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Erro ao deletar produto: " + e.getMessage());
-            return false;
+            throw new DataAccessException("Erro ao deletar produto.", e);
         }
     }
 }

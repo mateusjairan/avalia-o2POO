@@ -2,6 +2,7 @@ package com.example.gui;
 
 import com.example.Cliente;
 import com.example.ClienteDao;
+import com.example.DataAccessException;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -48,10 +49,14 @@ public class PainelClientes extends JPanel {
     }
 
     private void atualizarTabela() {
-        modeloTabela.setRowCount(0);
-        List<Cliente> clientes = clienteDao.obterTodosOsClientes();
-        for (Cliente cliente : clientes) {
-            modeloTabela.addRow(new Object[]{cliente.getId(), cliente.getNome(), cliente.getEmail(), cliente.getTelefone()});
+        try {
+            modeloTabela.setRowCount(0);
+            List<Cliente> clientes = clienteDao.obterTodosOsClientes();
+            for (Cliente cliente : clientes) {
+                modeloTabela.addRow(new Object[]{cliente.getId(), cliente.getNome(), cliente.getEmail(), cliente.getTelefone()});
+            }
+        } catch (DataAccessException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro de Acesso aos Dados", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -75,13 +80,17 @@ public class PainelClientes extends JPanel {
             String telefone = campoTelefone.getText();
 
             if (nome.trim().isEmpty() || email.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome e email não podem estar vazios.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Nome e email não podem estar vazios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            Cliente cliente = new Cliente(0, nome, email, telefone);
-            clienteDao.adicionarCliente(cliente);
-            atualizarTabela();
+            try {
+                Cliente cliente = new Cliente(0, nome, email, telefone);
+                clienteDao.adicionarCliente(cliente);
+                atualizarTabela();
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Adicionar Cliente", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -114,15 +123,19 @@ public class PainelClientes extends JPanel {
             String telefone = campoTelefone.getText();
 
             if (nome.trim().isEmpty() || email.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome e email não podem estar vazios.", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Nome e email não podem estar vazios.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            Cliente cliente = new Cliente(id, nome, email, telefone);
-            if (clienteDao.atualizarCliente(cliente)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível atualizar o cliente.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                Cliente cliente = new Cliente(id, nome, email, telefone);
+                if (clienteDao.atualizarCliente(cliente)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível atualizar o cliente (cliente não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Atualizar Cliente", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -138,10 +151,14 @@ public class PainelClientes extends JPanel {
         int confirmacao = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja deletar este cliente?", "Confirmar Deleção", JOptionPane.YES_NO_OPTION);
 
         if (confirmacao == JOptionPane.YES_OPTION) {
-            if (clienteDao.deletarCliente(id)) {
-                atualizarTabela();
-            } else {
-                JOptionPane.showMessageDialog(this, "Não foi possível deletar o cliente.", "Erro", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (clienteDao.deletarCliente(id)) {
+                    atualizarTabela();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Não foi possível deletar o cliente (cliente não encontrado).", "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DataAccessException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro ao Deletar Cliente", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
