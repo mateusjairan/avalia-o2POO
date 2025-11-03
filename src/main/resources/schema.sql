@@ -32,3 +32,6 @@ CREATE TABLE produtos (
 -- Inserindo um perfil padrão para testes
 INSERT INTO perfis (nome) VALUES ('Administrador');
 INSERT INTO perfis (nome) VALUES ('Usuario');
+
+-- Inserindo um usuário padrão para testes
+INSERT INTO usuarios (nome_usuario, senha, perfil_id) VALUES ('admin', 'admin', 1);
